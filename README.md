@@ -10,7 +10,7 @@
 ### Seed postgres
 1. compose up postgres container
     ```bash
-    docker compose up -V --force-recreate
+    docker compose up
     ```
 2. seed data
     ```bash
