@@ -4,6 +4,7 @@ use crate::user::value_objects::{
     email::Email, first_name::FirstName, last_name::LastName, password::Password, user_id::UserId,
 };
 
+#[derive(Eq)]
 pub struct User {
     id: UserId,
     first_name: FirstName,
@@ -30,6 +31,12 @@ impl User {
     }
 }
 
+impl PartialEq for User {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+    }
+}
+
 impl Debug for User {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("User")
@@ -39,5 +46,33 @@ impl Debug for User {
             .field("email", &self.email)
             .field("password", &self.password)
             .finish()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn partial_eq_works() {
+        let user_id = "id";
+
+        let user = User::new(
+            UserId::new(user_id.to_string()),
+            FirstName::new("first_name".to_string()),
+            LastName::new("last_name".to_string()),
+            Email::new("test@example.com".to_string()),
+            Password::new("password".to_string()),
+        );
+
+        let other = User::new(
+            UserId::new(user_id.to_string()),
+            FirstName::new("other_first_name".to_string()),
+            LastName::new("other_last_name".to_string()),
+            Email::new("other_test@example.com".to_string()),
+            Password::new("other_password".to_string()),
+        );
+
+        assert_eq!(user, other)
     }
 }
