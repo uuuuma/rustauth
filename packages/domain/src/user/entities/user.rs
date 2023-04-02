@@ -29,6 +29,21 @@ impl User {
             password,
         }
     }
+    pub fn id(&self) -> &UserId {
+        &self.id
+    }
+    pub fn first_name(&self) -> &FirstName {
+        &self.first_name
+    }
+    pub fn last_name(&self) -> &LastName {
+        &self.last_name
+    }
+    pub fn email(&self) -> &Email {
+        &self.email
+    }
+    pub fn password(&self) -> &Password {
+        &self.password
+    }
 }
 
 impl PartialEq for User {
