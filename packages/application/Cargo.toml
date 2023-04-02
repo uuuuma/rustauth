@@ -7,6 +7,4 @@ edition = "2021"
 
 [dependencies]
 domain = { path = "../domain" }
-
-# TODO: do dip
-infrastructure = { path = "../infrastructure" }
+async-trait = "0.1.68"

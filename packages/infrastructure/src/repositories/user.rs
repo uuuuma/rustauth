@@ -1,7 +1,10 @@
 use std::error::Error;
 
-use domain::user::entities::user::User;
+use async_trait::async_trait;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
+
+use application::interfaces::repositories::user::UserRepository;
+use domain::user::entities::user::User;
 
 pub struct PostgresUserRepository {
     pool: Pool<Postgres>,
@@ -16,8 +19,11 @@ impl PostgresUserRepository {
 
         Ok(Self { pool })
     }
+}
 
-    pub async fn save(&self, user: &User) -> Result<(), Box<dyn Error>> {
+#[async_trait]
+impl UserRepository for PostgresUserRepository {
+    async fn save(&self, user: &User) -> Result<(), Box<dyn Error>> {
         sqlx::query("INSERT INTO users VALUES ($1, $2, $3, $4, $5)")
             .bind(user.id().to_string())
             .bind(user.first_name().to_string())
