@@ -10,3 +10,4 @@ domain = { path = "../domain" }
 application = { path = "../application" }
 sqlx = { version = "0.6.3", features = ["runtime-tokio-rustls", "postgres"] }
 async-trait = "0.1.68"
+ulid = "1.0.0"
