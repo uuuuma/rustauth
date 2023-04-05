@@ -10,7 +10,7 @@ use infrastructure::{
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     let user_repository =
-        PostgresUserRepository::new("postgress://admin:admin@localhost/admin", 5).await?;
+        PostgresUserRepository::new("postgres://admin:admin@localhost/admin", 5).await?;
     let id_generator = UlidGenerator::new();
     let signup_handler = SignupHandler::new(user_repository, id_generator);
 
