@@ -1,12 +1,12 @@
 use std::error::Error;
 
-use super::command::RegisterCommand;
+use super::command::SignupCommand;
 use crate::interfaces::{
     authentication::id_generator::IdGenerator, repositories::user::UserRepository,
 };
 use domain::user::factory::UserFactory;
 
-pub struct RegisterHandler<R, G>
+pub struct SignupHandler<R, G>
 where
     R: UserRepository,
     G: IdGenerator,
@@ -15,7 +15,7 @@ where
     id_generator: G,
 }
 
-impl<R, G> RegisterHandler<R, G>
+impl<R, G> SignupHandler<R, G>
 where
     R: UserRepository,
     G: IdGenerator,
@@ -26,7 +26,7 @@ where
             id_generator,
         }
     }
-    pub async fn handle(&self, command: &RegisterCommand) -> Result<(), Box<dyn Error>> {
+    pub async fn handle(&self, command: &SignupCommand) -> Result<(), Box<dyn Error>> {
         let id = self.id_generator.generate();
 
         let user = UserFactory::create(

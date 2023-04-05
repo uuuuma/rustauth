@@ -1,11 +1,11 @@
-pub struct RegisterCommand {
+pub struct SignupCommand {
     first_name: String,
     last_name: String,
     email: String,
     password: String,
 }
 
-impl RegisterCommand {
+impl SignupCommand {
     pub fn new(first_name: String, last_name: String, email: String, password: String) -> Self {
         Self {
             first_name,
