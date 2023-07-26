@@ -1,11 +1,12 @@
 use std::error::Error;
 
 use async_trait::async_trait;
-use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
+use sqlx::{postgres::PgPoolOptions, Pool, Postgres, Row};
 
 use application::interfaces::repositories::user::UserRepository;
-use domain::user::entities::user::User;
+use domain::user::{entities::user::User, factory::UserFactory, value_objects::email::Email};
 
+#[derive(Clone)]
 pub struct PostgresUserRepository {
     pool: Pool<Postgres>,
 }
@@ -34,5 +35,21 @@ impl UserRepository for PostgresUserRepository {
             .await?;
 
         Ok(())
+    }
+    async fn load_by_email(&self, email: &Email) -> Result<User, Box<dyn Error>> {
+        let row = sqlx::query("SELECT * FROM users WHERE email = $1")
+            .bind(email.to_string())
+            .fetch_one(&self.pool)
+            .await?;
+
+        let id = row.get::<String, _>("id");
+        let first_name = row.get::<String, _>("first_name");
+        let last_name = row.get::<String, _>("last_name");
+        let email = row.get::<String, _>("email");
+        let password = row.get::<String, _>("password");
+
+        Ok(UserFactory::create(
+            id, first_name, last_name, email, password,
+        ))
     }
 }
