@@ -6,21 +6,21 @@ use crate::interfaces::{
 };
 use domain::user::factory::UserFactory;
 
-pub struct SignupHandler<R, G>
+pub struct SignupHandler<R, I>
 where
     R: UserRepository,
-    G: IdGenerator,
+    I: IdGenerator,
 {
     user_repository: R,
-    id_generator: G,
+    id_generator: I,
 }
 
-impl<R, G> SignupHandler<R, G>
+impl<R, I> SignupHandler<R, I>
 where
     R: UserRepository,
-    G: IdGenerator,
+    I: IdGenerator,
 {
-    pub fn new(user_repository: R, id_generator: G) -> Self {
+    pub fn new(user_repository: R, id_generator: I) -> Self {
         Self {
             user_repository,
             id_generator,

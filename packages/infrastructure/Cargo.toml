@@ -11,3 +11,7 @@ application = { path = "../application" }
 sqlx = { version = "0.6.3", features = ["runtime-tokio-rustls", "postgres"] }
 async-trait = "0.1.68"
 ulid = "1.0.0"
+jsonwebtoken = "8.3.0"
+serde = { version = "1.0.176", features = ["derive"] }
+chrono = "0.4.26"
+chrono-tz = "0.8.3"

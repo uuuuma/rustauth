@@ -5,7 +5,9 @@ use application::authentication::{
     queries::signin::{handler::SigninHandler, query::SigninQuery},
 };
 use infrastructure::{
-    authentication::ulid_generator::UlidGenerator, repositories::user::PostgresUserRepository,
+    authentication::{jwt_generator::JwtGenerator, ulid_generator::UlidGenerator},
+    repositories::user::PostgresUserRepository,
+    services::chrono_datetime_service::ChronoDateTimeService,
 };
 
 #[tokio::main]
@@ -13,8 +15,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let user_repository =
         PostgresUserRepository::new("postgres://admin:admin@localhost/admin", 5).await?;
     let id_generator = UlidGenerator::new();
-    let signup_handler = SignupHandler::new(user_repository.clone(), id_generator);
-    let signin_handler = SigninHandler::new(user_repository.clone());
+    let datetime_service = ChronoDateTimeService::new();
+    let jwt_generator = JwtGenerator::new(id_generator.clone(), datetime_service);
+
+    let signup_handler = SignupHandler::new(user_repository.clone(), id_generator.clone());
+    let signin_handler = SigninHandler::new(user_repository.clone(), jwt_generator);
 
     let signup_command = SignupCommand::new(
         "first_name".to_string(),
@@ -25,8 +30,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
     signup_handler.handle(&signup_command).await?;
 
     let signin_query = SigninQuery::new("user@example.com".to_string(), "password".to_string());
-    let user = signin_handler.handle(&signin_query).await?;
-    println!("{:#?}", user);
+    let signin_response = signin_handler.handle(&signin_query).await?;
+
+    println!("{:#?}", signin_response);
 
     Ok(())
 }
