@@ -5,7 +5,7 @@ use application::authentication::{
     queries::signin::{handler::SigninHandler, query::SigninQuery},
 };
 use infrastructure::{
-    authentication::{jwt_generator::JwtGenerator, ulid_generator::UlidGenerator},
+    authentication::{jwt_generator::JwtGenerator, uuid_generator::UuidGenerator},
     repositories::user::PostgresUserRepository,
     services::chrono_datetime_service::ChronoDateTimeService,
 };
@@ -14,7 +14,7 @@ use infrastructure::{
 async fn main() -> Result<(), Box<dyn Error>> {
     let user_repository =
         PostgresUserRepository::new("postgres://admin:admin@localhost/admin", 5).await?;
-    let id_generator = UlidGenerator::new();
+    let id_generator = UuidGenerator::new();
     let datetime_service = ChronoDateTimeService::new();
     let jwt_generator = JwtGenerator::new(id_generator.clone(), datetime_service);
 

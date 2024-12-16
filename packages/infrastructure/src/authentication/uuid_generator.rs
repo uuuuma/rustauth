@@ -1,24 +1,24 @@
-use ulid::Ulid;
+use uuid::Uuid;
 
 use application::interfaces::authentication::id_generator::IdGenerator;
 
 #[derive(Clone)]
-pub struct UlidGenerator;
+pub struct UuidGenerator;
 
-impl UlidGenerator {
+impl UuidGenerator {
     pub fn new() -> Self {
         Self
     }
 }
 
-impl Default for UlidGenerator {
+impl Default for UuidGenerator {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl IdGenerator for UlidGenerator {
+impl IdGenerator for UuidGenerator {
     fn generate(&self) -> String {
-        Ulid::new().to_string()
+        Uuid::now_v7().to_string()
     }
 }
