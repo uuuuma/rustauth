@@ -7,6 +7,6 @@ edition = "2021"
 
 [dependencies]
 domain = { path = "../domain" }
-async-trait = "0.1.68"
-chrono = "0.4.26"
-chrono-tz = "0.8.3"
+async-trait = "0.1.83"
+chrono = "0.4.39"
+chrono-tz = "0.10.0"
