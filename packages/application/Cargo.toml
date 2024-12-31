@@ -10,3 +10,4 @@ domain = { path = "../domain" }
 async-trait = "0.1.83"
 chrono = "0.4.39"
 chrono-tz = "0.10.0"
+anyhow = "1.0.95"

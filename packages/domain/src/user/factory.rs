@@ -21,7 +21,7 @@ impl UserFactory {
             FirstName::new(first_name),
             LastName::new(last_name),
             Email::new(email),
-            Password::new(password),
+            Password::new(&password),
         )
     }
 }
