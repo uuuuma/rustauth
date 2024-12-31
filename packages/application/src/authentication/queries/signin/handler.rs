@@ -28,7 +28,7 @@ where
     }
     pub async fn handle(&self, query: &SigninQuery) -> Result<SigninResponse, Box<dyn Error>> {
         let email = Email::new(query.email().clone());
-        let user = self.user_repository.load_by_email(&email).await?;
+        let user = self.user_repository.find_by_email(&email).await?;
 
         let token = self.token_generator.generate(user.id());
 

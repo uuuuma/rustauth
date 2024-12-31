@@ -4,7 +4,13 @@ use async_trait::async_trait;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres, Row};
 
 use application::interfaces::repositories::user::UserRepository;
-use domain::user::{entities::user::User, factory::UserFactory, value_objects::email::Email};
+use domain::user::{
+    entities::user::User,
+    value_objects::{
+        email::Email, first_name::FirstName, last_name::LastName, password::Password,
+        user_id::UserId,
+    },
+};
 
 #[derive(Clone)]
 pub struct PostgresUserRepository {
@@ -25,18 +31,19 @@ impl PostgresUserRepository {
 #[async_trait]
 impl UserRepository for PostgresUserRepository {
     async fn save(&self, user: &User) -> Result<(), Box<dyn Error>> {
-        sqlx::query("INSERT INTO users VALUES ($1, $2, $3, $4, $5)")
+        sqlx::query("INSERT INTO users VALUES ($1, $2, $3, $4, $5, $6)")
             .bind(user.id().to_string())
             .bind(user.first_name().to_string())
             .bind(user.last_name().to_string())
             .bind(user.email().to_string())
             .bind(user.password().to_string())
+            .bind(user.password().salt())
             .execute(&self.pool)
             .await?;
 
         Ok(())
     }
-    async fn load_by_email(&self, email: &Email) -> Result<User, Box<dyn Error>> {
+    async fn find_by_email(&self, email: &Email) -> Result<User, Box<dyn Error>> {
         let row = sqlx::query("SELECT * FROM users WHERE email = $1")
             .bind(email.to_string())
             .fetch_one(&self.pool)
@@ -46,10 +53,17 @@ impl UserRepository for PostgresUserRepository {
         let first_name = row.get::<String, _>("first_name");
         let last_name = row.get::<String, _>("last_name");
         let email = row.get::<String, _>("email");
-        let password = row.get::<String, _>("password");
+        let hashed_password = row.get::<String, _>("password");
+        let salt = row.get::<String, _>("salt");
 
-        Ok(UserFactory::create(
-            id, first_name, last_name, email, password,
-        ))
+        let user = User::new(
+            UserId::new(id),
+            FirstName::new(first_name),
+            LastName::new(last_name),
+            Email::new(email),
+            Password::new_with(hashed_password, salt),
+        );
+
+        Ok(user)
     }
 }
