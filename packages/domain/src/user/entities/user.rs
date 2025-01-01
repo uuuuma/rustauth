@@ -76,7 +76,7 @@ mod tests {
             UserId::new(user_id.to_string()),
             FirstName::new("first_name".to_string()),
             LastName::new("last_name".to_string()),
-            Email::new("test@example.com".to_string()),
+            Email::new(&"test@example.com".to_string()).unwrap(),
             Password::new(&"Password1234".to_string()).unwrap(),
         );
 
@@ -84,7 +84,7 @@ mod tests {
             UserId::new(user_id.to_string()),
             FirstName::new("other_first_name".to_string()),
             LastName::new("other_last_name".to_string()),
-            Email::new("other_test@example.com".to_string()),
+            Email::new(&"other_test@example.com".to_string()).unwrap(),
             Password::new(&"OtherPassword1234".to_string()).unwrap(),
         );
 

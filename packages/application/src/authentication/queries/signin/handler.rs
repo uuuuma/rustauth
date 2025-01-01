@@ -28,7 +28,7 @@ where
         }
     }
     pub async fn handle(&self, query: &SigninQuery) -> Result<SigninResponse, Box<dyn Error>> {
-        let email = Email::new(query.email().clone());
+        let email = Email::new(query.email()).unwrap();
         let user = self.user_repository.find_by_email(&email).await?;
 
         if user.password().is_same(query.password()).not() {

@@ -58,7 +58,7 @@ impl UserRepository for PostgresUserRepository {
             UserId::new(id),
             FirstName::new(first_name),
             LastName::new(last_name),
-            Email::new(email),
+            Email::new(&email).unwrap(),
             Password::new_with(hashed_password),
         );
 
