@@ -12,7 +12,6 @@ use crate::error::DomainError;
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Password {
     hashed_password: String,
-    salt: String,
 }
 
 static ARGON2: LazyLock<Argon2<'static>> = LazyLock::new(|| {
@@ -29,14 +28,11 @@ impl Password {
 
         let salt = SaltString::generate(&mut OsRng);
         let hashed_password = match ARGON2.hash_password(raw_password.as_bytes(), &salt) {
-            Ok(p) => p,
+            Ok(password) => password.to_string(),
             Err(err) => return Err(vec![DomainError::UnexpectedError(anyhow!(err))]),
         };
 
-        Ok(Self {
-            hashed_password: hashed_password.to_string(),
-            salt: salt.to_string(),
-        })
+        Ok(Self { hashed_password })
     }
 
     fn validate(raw_password: &str) -> Result<(), Vec<DomainError>> {
@@ -82,15 +78,8 @@ impl Password {
         Ok(())
     }
 
-    pub fn new_with(hashed_password: String, salt: String) -> Self {
-        Self {
-            hashed_password,
-            salt,
-        }
-    }
-
-    pub fn salt(&self) -> String {
-        self.salt.to_string()
+    pub fn new_with(hashed_password: String) -> Self {
+        Self { hashed_password }
     }
 
     pub fn is_same(&self, raw_password: &String) -> bool {

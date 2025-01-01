@@ -31,13 +31,12 @@ impl PostgresUserRepository {
 #[async_trait]
 impl UserRepository for PostgresUserRepository {
     async fn save(&self, user: &User) -> Result<(), Box<dyn Error>> {
-        sqlx::query("INSERT INTO users VALUES ($1, $2, $3, $4, $5, $6)")
+        sqlx::query("INSERT INTO users VALUES ($1, $2, $3, $4, $5)")
             .bind(user.id().to_string())
             .bind(user.first_name().to_string())
             .bind(user.last_name().to_string())
             .bind(user.email().to_string())
             .bind(user.password().to_string())
-            .bind(user.password().salt())
             .execute(&self.pool)
             .await?;
 
@@ -54,14 +53,13 @@ impl UserRepository for PostgresUserRepository {
         let last_name = row.get::<String, _>("last_name");
         let email = row.get::<String, _>("email");
         let hashed_password = row.get::<String, _>("password");
-        let salt = row.get::<String, _>("salt");
 
         let user = User::new(
             UserId::new(id),
             FirstName::new(first_name),
             LastName::new(last_name),
             Email::new(email),
-            Password::new_with(hashed_password, salt),
+            Password::new_with(hashed_password),
         );
 
         Ok(user)
