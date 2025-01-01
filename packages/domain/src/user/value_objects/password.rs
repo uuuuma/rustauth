@@ -1,9 +1,13 @@
-use std::{fmt::Display, sync::LazyLock};
+use std::{fmt::Display, ops::Not, sync::LazyLock};
 
+use anyhow::anyhow;
 use argon2::{
     password_hash::{rand_core::OsRng, SaltString},
     Argon2, Params, PasswordHash, PasswordHasher, PasswordVerifier,
 };
+use regex::Regex;
+
+use crate::error::DomainError;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Password {
@@ -20,16 +24,62 @@ static ARGON2: LazyLock<Argon2<'static>> = LazyLock::new(|| {
 });
 
 impl Password {
-    pub fn new(raw_password: &String) -> Self {
-        let salt = SaltString::generate(&mut OsRng);
-        let hashed_password = ARGON2
-            .hash_password(raw_password.as_bytes(), &salt)
-            .unwrap();
+    pub fn new(raw_password: &String) -> Result<Self, Vec<DomainError>> {
+        Self::validate(raw_password)?;
 
-        Self {
+        let salt = SaltString::generate(&mut OsRng);
+        let hashed_password = match ARGON2.hash_password(raw_password.as_bytes(), &salt) {
+            Ok(p) => p,
+            Err(err) => return Err(vec![DomainError::UnexpectedError(anyhow!(err))]),
+        };
+
+        Ok(Self {
             hashed_password: hashed_password.to_string(),
             salt: salt.to_string(),
+        })
+    }
+
+    fn validate(raw_password: &str) -> Result<(), Vec<DomainError>> {
+        let mut errors = vec![];
+
+        if raw_password.is_ascii().not() {
+            errors.push(DomainError::ValidationError {
+                description: "use only ascii characters for password",
+            });
         }
+
+        let length = raw_password.len();
+        if (8..=20).contains(&length).not() {
+            errors.push(DomainError::ValidationError {
+                description: "password must be at least 8 and less than 20 characters",
+            });
+        }
+
+        let has_lower_case = Regex::new("[a-z]").unwrap();
+        if has_lower_case.is_match(raw_password).not() {
+            errors.push(DomainError::ValidationError {
+                description: "password must have lower case ascii (a-z)",
+            })
+        }
+
+        let has_upper_case = Regex::new("[A-Z]").unwrap();
+        if has_upper_case.is_match(raw_password).not() {
+            errors.push(DomainError::ValidationError {
+                description: "password must have upper case ascii (A-Z)",
+            })
+        }
+
+        let has_number = Regex::new("[0-9]").unwrap();
+        if has_number.is_match(raw_password).not() {
+            errors.push(DomainError::ValidationError {
+                description: "password must have number (0-9)",
+            })
+        }
+
+        if errors.is_empty().not() {
+            return Err(errors);
+        }
+        Ok(())
     }
 
     pub fn new_with(hashed_password: String, salt: String) -> Self {
@@ -64,9 +114,58 @@ mod tests {
     use super::*;
 
     #[test]
-    fn verify_password() {
-        let raw_password = "password".to_string();
+    fn new_successfully() {
+        let raw_password = "Password1234".to_string();
+
         let password = Password::new(&raw_password);
+
+        assert!(password.is_ok());
+    }
+
+    #[test]
+    fn new_with_char_errors() {
+        let raw_password = "!@#$%^&*".to_string();
+
+        let password = Password::new(&raw_password);
+        let errors = password.err().unwrap();
+
+        assert_eq!(errors.len(), 3);
+    }
+
+    #[test]
+    fn new_with_non_ascii_error() {
+        let raw_password = "パスワード".to_string();
+
+        let password = Password::new(&raw_password);
+        let errors = password.err().unwrap();
+
+        assert_eq!(errors.len(), 4);
+    }
+
+    #[test]
+    fn new_with_too_short_error() {
+        let raw_password = "Pass1".to_string();
+
+        let password = Password::new(&raw_password);
+        let errors = password.err().unwrap();
+
+        assert_eq!(errors.len(), 1);
+    }
+
+    #[test]
+    fn new_with_too_long_error() {
+        let raw_password = "Password123456789!@#$%^&*".to_string();
+
+        let password = Password::new(&raw_password);
+        let errors = password.err().unwrap();
+
+        assert_eq!(errors.len(), 1);
+    }
+
+    #[test]
+    fn verify_password() {
+        let raw_password = "Password1234".to_string();
+        let password = Password::new(&raw_password).unwrap();
 
         let result = password.is_same(&raw_password);
 
@@ -75,12 +174,12 @@ mod tests {
 
     #[test]
     fn verify_invalid_password() {
-        let raw_password = "password".to_string();
-        let invalid_password = "invalid password".to_string();
-        let password = Password::new(&raw_password);
+        let raw_password = "Password1234".to_string();
+        let invalid_password = "InvalidPassword1234".to_string();
+        let password = Password::new(&raw_password).unwrap();
 
         let result = password.is_same(&invalid_password);
 
-        assert_eq!(result, false)
+        assert!(!result)
     }
 }

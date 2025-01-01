@@ -25,11 +25,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
         "first_name".to_string(),
         "last_name".to_string(),
         "user@example.com".to_string(),
-        "password".to_string(),
+        "Password1234".to_string(),
     );
     signup_handler.handle(&signup_command).await?;
 
-    let signin_query = SigninQuery::new("user@example.com".to_string(), "password".to_string());
+    let signin_query = SigninQuery::new("user@example.com".to_string(), "Password1234".to_string());
     let signin_response = signin_handler.handle(&signin_query).await?;
 
     println!("{:#?}", signin_response);

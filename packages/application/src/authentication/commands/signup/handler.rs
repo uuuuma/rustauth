@@ -35,7 +35,8 @@ where
             command.last_name().clone(),
             command.email().clone(),
             command.password().clone(),
-        );
+        )
+        .unwrap();
 
         self.user_repository.save(&user).await?;
 

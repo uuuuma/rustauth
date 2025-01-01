@@ -1,3 +1,5 @@
+use crate::error::DomainError;
+
 use super::{
     entities::user::User,
     value_objects::{
@@ -15,13 +17,13 @@ impl UserFactory {
         last_name: String,
         email: String,
         password: String,
-    ) -> User {
-        User::new(
+    ) -> Result<User, Vec<DomainError>> {
+        Ok(User::new(
             UserId::new(id),
             FirstName::new(first_name),
             LastName::new(last_name),
             Email::new(email),
-            Password::new(&password),
-        )
+            Password::new(&password)?,
+        ))
     }
 }
