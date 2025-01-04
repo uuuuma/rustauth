@@ -74,6 +74,7 @@ dependencies = [
  "chrono",
  "chrono-tz",
  "domain",
+ "thiserror 2.0.9",
 ]
 
 [[package]]
@@ -333,6 +334,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "deunicode"
+version = "1.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "339544cc9e2c4dc3fc7149fd630c5f22263a4fdf18a98afd0075784968b5cf00"
+
+[[package]]
 name = "digest"
 version = "0.10.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -416,6 +423,16 @@ dependencies = [
  "concurrent-queue",
  "parking",
  "pin-project-lite",
+]
+
+[[package]]
+name = "fake"
+version = "3.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "aef603df4ba9adbca6a332db7da6f614f21eafefbaf8e087844e452fdec152d0"
+dependencies = [
+ "deunicode",
+ "rand",
 ]
 
 [[package]]
@@ -785,6 +802,7 @@ dependencies = [
 name = "infrastructure"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "application",
  "async-trait",
  "chrono",
@@ -2121,6 +2139,7 @@ version = "0.1.0"
 dependencies = [
  "application",
  "domain",
+ "fake",
  "infrastructure",
  "tokio",
 ]

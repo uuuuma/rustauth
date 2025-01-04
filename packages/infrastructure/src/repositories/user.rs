@@ -1,9 +1,10 @@
 use std::error::Error;
 
+use anyhow::anyhow;
 use async_trait::async_trait;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres, Row};
 
-use application::interfaces::repositories::user::UserRepository;
+use application::{error::ApplicationError, interfaces::repositories::user::UserRepository};
 use domain::user::{
     entities::user::User,
     value_objects::{
@@ -30,7 +31,7 @@ impl PostgresUserRepository {
 
 #[async_trait]
 impl UserRepository for PostgresUserRepository {
-    async fn save(&self, user: &User) -> Result<(), Box<dyn Error>> {
+    async fn save(&self, user: &User) -> Result<(), ApplicationError> {
         sqlx::query("INSERT INTO users VALUES ($1, $2, $3, $4, $5)")
             .bind(user.id().to_string())
             .bind(user.first_name().to_string())
@@ -38,15 +39,24 @@ impl UserRepository for PostgresUserRepository {
             .bind(user.email().to_string())
             .bind(user.password().to_string())
             .execute(&self.pool)
-            .await?;
+            .await
+            .map_err(|err| ApplicationError::UnexpectedError(anyhow!(err)))?;
 
         Ok(())
     }
-    async fn find_by_email(&self, email: &Email) -> Result<User, Box<dyn Error>> {
-        let row = sqlx::query("SELECT * FROM users WHERE email = $1")
+    async fn find_by_email(&self, email: &Email) -> Result<Option<User>, ApplicationError> {
+        let result = sqlx::query("SELECT * FROM users WHERE email = $1")
             .bind(email.to_string())
             .fetch_one(&self.pool)
-            .await?;
+            .await;
+
+        let row = match result {
+            Ok(row) => row,
+            Err(err) => match err {
+                sqlx::Error::RowNotFound => return Ok(None),
+                _ => return Err(ApplicationError::UnexpectedError(anyhow!(err))),
+            },
+        };
 
         let id = row.get::<String, _>("id");
         let first_name = row.get::<String, _>("first_name");
@@ -62,6 +72,6 @@ impl UserRepository for PostgresUserRepository {
             Password::new_with(hashed_password),
         );
 
-        Ok(user)
+        Ok(Some(user))
     }
 }

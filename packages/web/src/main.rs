@@ -1,5 +1,7 @@
 use std::error::Error;
 
+use fake::{faker::internet::ja_jp as fake_internet, faker::name::ja_jp as fake_name, Fake};
+
 use application::authentication::{
     commands::signup::{command::SignupCommand, handler::SignupHandler},
     queries::signin::{handler::SigninHandler, query::SigninQuery},
@@ -21,15 +23,21 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let signup_handler = SignupHandler::new(user_repository.clone(), id_generator.clone());
     let signin_handler = SigninHandler::new(user_repository.clone(), jwt_generator);
 
+    let email = fake_internet::FreeEmail()
+        .fake::<String>()
+        .split(' ')
+        .collect::<Vec<_>>()
+        .join("_");
+
     let signup_command = SignupCommand::new(
-        "first_name".to_string(),
-        "last_name".to_string(),
-        "user@example.com".to_string(),
+        fake_name::FirstName().fake::<String>(),
+        fake_name::LastName().fake::<String>(),
+        email.clone(),
         "Password1234".to_string(),
     );
     signup_handler.handle(&signup_command).await?;
 
-    let signin_query = SigninQuery::new("user@example.com".to_string(), "Password1234".to_string());
+    let signin_query = SigninQuery::new(email, "Password1234".to_string());
     let signin_response = signin_handler.handle(&signin_query).await?;
 
     println!("{:#?}", signin_response);

@@ -15,3 +15,4 @@ serde = { version = "1.0.216", features = ["derive"] }
 chrono = "0.4.39"
 chrono-tz = "0.10.0"
 uuid = { version = "1.11.0", features = ["fast-rng", "v7"] }
+anyhow = "1.0.95"

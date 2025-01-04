@@ -1,8 +1,7 @@
-use std::error::Error;
-
 use super::command::SignupCommand;
-use crate::interfaces::{
-    authentication::id_generator::IdGenerator, repositories::user::UserRepository,
+use crate::{
+    error::ApplicationError,
+    interfaces::{authentication::id_generator::IdGenerator, repositories::user::UserRepository},
 };
 use domain::user::factory::UserFactory;
 
@@ -26,7 +25,7 @@ where
             id_generator,
         }
     }
-    pub async fn handle(&self, command: &SignupCommand) -> Result<(), Box<dyn Error>> {
+    pub async fn handle(&self, command: &SignupCommand) -> Result<(), ApplicationError> {
         let id = self.id_generator.generate();
 
         let user = UserFactory::create(
@@ -37,6 +36,16 @@ where
             command.password().clone(),
         )
         .unwrap();
+
+        let user_exist = self
+            .user_repository
+            .find_by_email(user.email())
+            .await?
+            .is_some();
+
+        if user_exist {
+            return Err(ApplicationError::UserAlreadyExistError);
+        }
 
         self.user_repository.save(&user).await?;
 

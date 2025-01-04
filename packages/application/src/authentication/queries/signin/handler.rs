@@ -1,10 +1,12 @@
-use std::{error::Error, ops::Not};
+use std::ops::Not;
 
 use super::{query::SigninQuery, response::SigninResponse};
-use crate::interfaces::{
-    authentication::token_generator::TokenGenerator, repositories::user::UserRepository,
+use crate::{
+    error::ApplicationError,
+    interfaces::{
+        authentication::token_generator::TokenGenerator, repositories::user::UserRepository,
+    },
 };
-use anyhow::anyhow;
 use domain::user::value_objects::email::Email;
 
 pub struct SigninHandler<R, T>
@@ -27,12 +29,17 @@ where
             token_generator,
         }
     }
-    pub async fn handle(&self, query: &SigninQuery) -> Result<SigninResponse, Box<dyn Error>> {
+    pub async fn handle(&self, query: &SigninQuery) -> Result<SigninResponse, ApplicationError> {
         let email = Email::new(query.email()).unwrap();
-        let user = self.user_repository.find_by_email(&email).await?;
+        let user = match self.user_repository.find_by_email(&email).await? {
+            Some(user) => user,
+            None => return Err(ApplicationError::UserIsNotFoundError),
+        };
 
         if user.password().is_same(query.password()).not() {
-            return Err(anyhow!("password is invalid").into());
+            return Err(ApplicationError::InvalidParameters {
+                description: "email or password is wrong",
+            });
         }
 
         let token = self.token_generator.generate(user.id());

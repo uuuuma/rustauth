@@ -10,3 +10,4 @@ domain = { path = "../domain" }
 application = { path = "../application" }
 infrastructure = { path = "../infrastructure" }
 tokio = { version = "1.42.0", features = ["macros", "rt-multi-thread"] }
+fake = "3.1.0"
