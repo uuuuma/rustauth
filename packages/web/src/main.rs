@@ -1,5 +1,6 @@
 use std::error::Error;
 
+use dotenvy::dotenv;
 use fake::{faker::internet::ja_jp as fake_internet, faker::name::ja_jp as fake_name, Fake};
 
 use application::authentication::{
@@ -14,6 +15,8 @@ use infrastructure::{
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
+    dotenv().unwrap();
+
     let user_repository =
         PostgresUserRepository::new("postgres://admin:admin@localhost/admin", 5).await?;
     let id_generator = UuidGenerator::new();

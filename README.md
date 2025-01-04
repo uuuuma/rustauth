@@ -7,6 +7,12 @@
 - make
 
 ## Preparation
+### Create .env
+copy .env.example as .env
+```bash
+cp .env.example .env
+```
+
 ### Seed postgres
 1. compose up postgres container
     ```bash

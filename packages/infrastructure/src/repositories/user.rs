@@ -2,7 +2,7 @@ use std::error::Error;
 
 use anyhow::anyhow;
 use async_trait::async_trait;
-use sqlx::{postgres::PgPoolOptions, Pool, Postgres, Row};
+use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 
 use application::{error::ApplicationError, interfaces::repositories::user::UserRepository};
 use domain::user::{
@@ -32,21 +32,22 @@ impl PostgresUserRepository {
 #[async_trait]
 impl UserRepository for PostgresUserRepository {
     async fn save(&self, user: &User) -> Result<(), ApplicationError> {
-        sqlx::query("INSERT INTO users VALUES ($1, $2, $3, $4, $5)")
-            .bind(user.id().to_string())
-            .bind(user.first_name().to_string())
-            .bind(user.last_name().to_string())
-            .bind(user.email().to_string())
-            .bind(user.password().to_string())
-            .execute(&self.pool)
-            .await
-            .map_err(|err| ApplicationError::UnexpectedError(anyhow!(err)))?;
+        sqlx::query!(
+            "INSERT INTO users VALUES ($1, $2, $3, $4, $5)",
+            user.id().to_string(),
+            user.first_name().to_string(),
+            user.last_name().to_string(),
+            user.email().to_string(),
+            user.password().to_string(),
+        )
+        .execute(&self.pool)
+        .await
+        .map_err(|err| ApplicationError::UnexpectedError(anyhow!(err)))?;
 
         Ok(())
     }
     async fn find_by_email(&self, email: &Email) -> Result<Option<User>, ApplicationError> {
-        let result = sqlx::query("SELECT * FROM users WHERE email = $1")
-            .bind(email.to_string())
+        let result = sqlx::query!("SELECT * FROM users WHERE email = $1", email.to_string())
             .fetch_one(&self.pool)
             .await;
 
@@ -58,18 +59,12 @@ impl UserRepository for PostgresUserRepository {
             },
         };
 
-        let id = row.get::<String, _>("id");
-        let first_name = row.get::<String, _>("first_name");
-        let last_name = row.get::<String, _>("last_name");
-        let email = row.get::<String, _>("email");
-        let hashed_password = row.get::<String, _>("password");
-
         let user = User::new(
-            UserId::new(id),
-            FirstName::new(first_name),
-            LastName::new(last_name),
-            Email::new(&email).unwrap(),
-            Password::new_with(hashed_password),
+            UserId::new(row.id),
+            FirstName::new(row.first_name),
+            LastName::new(row.last_name),
+            Email::new(&row.email).unwrap(),
+            Password::new_with(row.password),
         );
 
         Ok(Some(user))
